@@ -3,7 +3,7 @@
 
 namespace Biblioteca.Domain.Entities
 {
-    internal class Emprestimo
+    public class Emprestimo
     {
         public int Id { get; private set; }
         public Livro Livro { get; private set; }
@@ -39,6 +39,28 @@ namespace Biblioteca.Domain.Entities
             Status = StatusEmprestimo.Ativo;
 
 
+        }
+
+        private Emprestimo() { }
+
+        public Emprestimo(Livro livro, Usuario usuario, DateTime dataPrevistaDevolucao)
+        {
+            if (livro is null)
+                throw new ArgumentNullException(nameof(livro));
+
+            if (usuario is null)
+                throw new ArgumentNullException(nameof(usuario));
+
+            if (dataPrevistaDevolucao.Date < DateTime.Today)
+                throw new ArgumentException("A data da devolução não pode ser no passado.", nameof(dataPrevistaDevolucao));
+
+            livro.MarcarComoEmprestado();
+
+            Livro = livro;
+            Usuario = usuario;
+            DataEmprestimo = DateTime.Now;
+            DataPrevistaDevolucao = dataPrevistaDevolucao.Date;
+            Status = StatusEmprestimo.Ativo;
         }
 
         public void Devolver()

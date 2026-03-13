@@ -1,0 +1,39 @@
+﻿@model Biblioteca.Domain.Entities.Usuario
+
+@{
+    bool temEmprestimoAtivo = ViewBag.TemEmprestimoAtivo ?? false;
+}
+
+@{
+    ViewData["Title"] = "Excluir Usuário";
+}
+
+<h2>Excluir Usuário</h2>
+
+<div class="alert alert-warning">
+    Tem certeza que deseja excluir o usuário abaixo?
+</div>
+
+<ul class="list-group mb-3">
+    <li class="list-group-item"><strong>Id:</strong> @Model.Id</li>
+    <li class="list-group-item"><strong>Nome:</strong> @Model.Nome</li>
+    <li class="list-group-item"><strong>Email:</strong> @Model.Email</li>
+</ul>
+
+@if (temEmprestimoAtivo)
+{
+    <div class="alert alert-danger">
+        Não é possível excluir este usuário porque existe empréstimo ativo.
+        Primeiro devolva os empréstimos desse usuário.
+    </div>
+
+    <a class="btn btn-secondary" asp-controller="Usuarios" asp-action="Index">Voltar</a>
+}
+else
+{
+    <form asp-action="DeleteConfirmed" method="post">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+        <a class="btn btn-secondary" asp-controller="Usuarios" asp-action="Index">Cancelar</a>
+    </form>
+}

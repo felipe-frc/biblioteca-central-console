@@ -1,0 +1,59 @@
+﻿@model IEnumerable<Biblioteca.Domain.Entities.Usuario>
+
+@if (TempData["Erro"] is not null)
+{
+    <div class="alert alert-danger">@TempData["Erro"]</div>
+}
+
+@if (TempData["Sucesso"] is not null)
+{
+    <div class="alert alert-success">@TempData["Sucesso"]</div>
+}
+
+<h2>Usuários</h2>
+
+<a class="btn btn-primary mb-3" asp-controller="Usuarios" asp-action="Create">Novo Usuário</a>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Nenhum usuário cadastrado.</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var u in Model)
+            {
+                <tr>
+                    <td>@u.Id</td>
+                    <td>@u.Nome</td>
+                    <td>@u.Email</td>
+                    <td>
+                        <a class="btn btn-sm btn-warning"
+                           asp-controller="Usuarios"
+                           asp-action="Edit"
+                           asp-route-id="@u.Id">
+                            Editar
+                        </a>
+
+                        <a class="btn btn-sm btn-danger ms-2"
+                           asp-controller="Usuarios"
+                           asp-action="Delete"
+                           asp-route-id="@u.Id">
+                            Excluir
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

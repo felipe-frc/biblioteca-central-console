@@ -1,0 +1,63 @@
+﻿@model IEnumerable<Biblioteca.Domain.Entities.Livro>
+
+@if (TempData["Erro"] is not null)
+{
+    <div class="alert alert-danger">@TempData["Erro"]</div>
+}
+
+@if (TempData["Sucesso"] is not null)
+{
+    <div class="alert alert-success">@TempData["Sucesso"]</div>
+}
+
+<h2>Livros</h2>
+
+<a class="btn btn-primary mb-3" asp-controller="Livros" asp-action="Create">Novo Livro</a>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Nenhum livro cadastrado.</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Título</th>
+                <th>Autor</th>
+                <th>Ano</th>
+                <th>Disponível</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var livro in Model)
+            {
+                <tr>
+                    <td>@livro.Id</td>
+                    <td>@livro.Titulo</td>
+                    <td>@livro.Autor</td>
+                    <td>@livro.AnoPublicacao</td>
+                    <td>@(livro.Disponivel ? "Sim" : "Não")</td>
+                    <td>
+                        <a class="btn btn-sm btn-warning"
+                           asp-controller="Livros"
+                           asp-action="Edit"
+                           asp-route-id="@livro.Id">
+                            Editar
+                        </a>
+
+                        <a class="btn btn-sm btn-danger ms-2"
+                           asp-controller="Livros"
+                           asp-action="Delete"
+                           asp-route-id="@livro.Id">
+                            Excluir
+                        </a>
+
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

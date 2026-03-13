@@ -1,0 +1,44 @@
+﻿@{
+    ViewData["Title"] = "Novo Empréstimo";
+}
+
+<h2>Novo Empréstimo</h2>
+
+@if (TempData["Erro"] is not null)
+{
+    <div class="alert alert-danger">@TempData["Erro"]</div>
+}
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label class="form-label">Usuário</label>
+        <select class="form-select" name="usuarioId" required>
+            <option value="">-- selecione --</option>
+            @foreach (var u in (IEnumerable<Biblioteca.Domain.Entities.Usuario>)ViewBag.Usuarios)
+            {
+                <option value="@u.Id">@u.Nome</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Livro (somente disponíveis)</label>
+        <select class="form-select" name="livroId" required>
+            <option value="">-- selecione --</option>
+            @foreach (var l in (IEnumerable<Biblioteca.Domain.Entities.Livro>)ViewBag.Livros)
+            {
+                <option value="@l.Id">@l.Titulo</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Data prevista de devolução</label>
+        <input class="form-control" type="date" name="dataPrevistaDevolucao" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a class="btn btn-secondary" asp-controller="Emprestimos" asp-action="Index">Cancelar</a>
+</form>

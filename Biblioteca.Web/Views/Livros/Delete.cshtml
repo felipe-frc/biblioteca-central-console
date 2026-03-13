@@ -1,0 +1,37 @@
+﻿@model Biblioteca.Domain.Entities.Livro
+
+@{
+    ViewData["Title"] = "Excluir Livro";
+    bool temEmprestimoRelacionado = ViewBag.TemEmprestimoAtivo ?? false;
+}
+
+<h2>Excluir Livro</h2>
+
+<div class="alert alert-warning">
+    Tem certeza que deseja excluir o livro abaixo?
+</div>
+
+<ul class="list-group mb-3">
+    <li class="list-group-item"><strong>Id:</strong> @Model.Id</li>
+    <li class="list-group-item"><strong>Título:</strong> @Model.Titulo</li>
+    <li class="list-group-item"><strong>Autor:</strong> @Model.Autor</li>
+    <li class="list-group-item"><strong>Ano:</strong> @Model.AnoPublicacao</li>
+</ul>
+
+@if (temEmprestimoRelacionado)
+{
+    <div class="alert alert-danger">
+        Não é possível excluir este livro porque ele já possui empréstimos registrados (histórico).
+    </div>
+
+    <a class="btn btn-secondary" asp-controller="Livros" asp-action="Index">Voltar</a>
+}
+else
+{
+    <form asp-action="DeleteConfirmed" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+        <a class="btn btn-secondary" asp-controller="Livros" asp-action="Index">Cancelar</a>
+    </form>
+}

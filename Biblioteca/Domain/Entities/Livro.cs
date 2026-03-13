@@ -2,7 +2,7 @@
 
 namespace Biblioteca.Domain.Entities
 {
-    internal class Livro
+    public class Livro
     {
 
         public int Id { get; private set; }
@@ -34,6 +34,26 @@ namespace Biblioteca.Domain.Entities
             Disponivel = true;
         }
 
+        private Livro() { }
+
+        public Livro(string titulo, string autor, int anoPublicacao)
+        {
+            if (string.IsNullOrWhiteSpace(titulo))
+                throw new ArgumentException("Título não pode ser vazio.", nameof(titulo));
+
+            if (string.IsNullOrWhiteSpace(autor))
+                throw new ArgumentException("Autor não pode ser vazio.", nameof(autor));
+
+            int anoAtual = DateTime.Now.Year;
+            if (anoPublicacao < 1450 || anoPublicacao > anoAtual)
+                throw new ArgumentOutOfRangeException(nameof(anoPublicacao), $"Ano de publicação deve estar entre 1450 e {anoAtual}.");
+
+            Titulo = titulo;
+            Autor = autor;
+            AnoPublicacao = anoPublicacao;
+            Disponivel = true;
+        }
+
         public void MarcarComoEmprestado()
         {
 
@@ -55,6 +75,23 @@ namespace Biblioteca.Domain.Entities
             }
 
             Disponivel = true;
+        }
+
+        public void AtualizarDados(string titulo, string autor, int anoPublicacao)
+        {
+            if (string.IsNullOrWhiteSpace(titulo))
+                throw new ArgumentException("Título não pode ser vazio.", nameof(titulo));
+
+            if (string.IsNullOrWhiteSpace(autor))
+                throw new ArgumentException("Autor não pode ser vazio.", nameof(autor));
+
+            int anoAtual = DateTime.Now.Year;
+            if (anoPublicacao < 1450 || anoPublicacao > anoAtual)
+                throw new ArgumentOutOfRangeException(nameof(anoPublicacao), $"Ano de publicação deve estar entre 1450 e {anoAtual}.");
+
+            Titulo = titulo.Trim();
+            Autor = autor.Trim();
+            AnoPublicacao = anoPublicacao;
         }
 
 

@@ -1,0 +1,70 @@
+﻿
+
+@model IEnumerable<Biblioteca.Domain.Entities.Emprestimo>
+
+<h2>Empréstimos</h2>
+
+@if (TempData["Erro"] is not null)
+{
+    <div class="alert alert-danger">@TempData["Erro"]</div>
+}
+
+@if (TempData["Sucesso"] is not null)
+{
+    <div class="alert alert-success">@TempData["Sucesso"]</div>
+}
+
+<a class="btn btn-primary mb-3" asp-controller="Emprestimos" asp-action="Create">Novo Empréstimo</a>
+
+
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Nenhum empréstimo cadastrado.</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Livro</th>
+                <th>Usuário</th>
+                <th>Empréstimo</th>
+                <th>Prevista</th>
+                <th>Devolução</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var e in Model)
+            {
+                <tr>
+                    <td>@e.Id</td>
+                    <td>@e.Livro.Titulo</td>
+                    <td>@e.Usuario.Nome</td>
+                    <td>@e.DataEmprestimo.ToString("dd/MM/yyyy")</td>
+                    <td>@e.DataPrevistaDevolucao.ToString("dd/MM/yyyy")</td>
+                    <td>@(e.DataDevolucao is null ? "-" : e.DataDevolucao.Value.ToString("dd/MM/yyyy"))</td>
+                    <td>@e.Status</td>
+                    <td>
+                        @if (e.DataDevolucao is null)
+                        {
+                            <a class="btn btn-sm btn-success"
+                               asp-controller="Emprestimos"
+                               asp-action="Devolver"
+                               asp-route-id="@e.Id">
+                                Devolver
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">-</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

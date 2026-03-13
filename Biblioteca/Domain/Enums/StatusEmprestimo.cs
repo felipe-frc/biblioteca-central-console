@@ -2,7 +2,7 @@
 
 namespace Biblioteca.Domain.Enums
 {
-    internal enum StatusEmprestimo
+    public enum StatusEmprestimo
     {
         Ativo,
         Devolvido,
