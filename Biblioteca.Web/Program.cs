@@ -1,18 +1,28 @@
+using Biblioteca.Services;
+using Biblioteca.Web.Services;
 using Biblioteca.Web.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// DbContext (SQLite)
 builder.Services.AddDbContext<BibliotecaDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddScoped<IEmprestimoAppService, EmprestimoAppService>();
+
+builder.Services.AddScoped<IEmprestimoService, BibliotecaService>();
+
+builder.Services.AddLogging(config =>
+{
+    config.AddConsole();
+    config.AddDebug();
+    config.AddEventSourceLogger();
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");

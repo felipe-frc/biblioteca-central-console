@@ -1,147 +1,212 @@
-﻿using Biblioteca.Domain.Entities;
+﻿using Biblioteca.Web.Services;
 using Biblioteca.Web.Data;
+using Biblioteca.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Biblioteca.Web.Controllers
 {
+    /// <summary>
+    /// Controller responsável pelo gerenciamento de empréstimos da biblioteca.
+    /// </summary>
     public class EmprestimosController : Controller
     {
         private readonly BibliotecaDbContext _context;
+        private readonly ILogger<EmprestimosController> _logger;
+        private readonly IEmprestimoAppService _emprestimoAppService;
 
-        public EmprestimosController(BibliotecaDbContext context)
+        /// <summary>
+        /// Inicializa uma nova instância do controller de empréstimos.
+        /// </summary>
+        public EmprestimosController(
+            BibliotecaDbContext context,
+            ILogger<EmprestimosController> logger,
+            IEmprestimoAppService emprestimoAppService)
         {
             _context = context;
+            _logger = logger;
+            _emprestimoAppService = emprestimoAppService;
         }
 
-        public IActionResult Index()
+        /// <summary>
+        /// Exibe a listagem paginada de empréstimos.
+        /// </summary>
+        public IActionResult Index(int page = 1)
         {
-            var emprestimos = _context.Emprestimos
-                .Include(e => e.Livro)
+            const int pageSize = 6;
+
+            var query = _context.Emprestimos
                 .Include(e => e.Usuario)
-                .OrderByDescending(e => e.Id)
+                .Include(e => e.Livro)
+                .AsNoTracking()
+                .OrderByDescending(e => e.Id);
+
+            var totalEmprestimos = query.Count();
+            var pendentes = query.Count(e => e.DataDevolucao == null);
+            var devolvidos = query.Count(e => e.DataDevolucao != null);
+
+            var totalPages = (int)Math.Ceiling(totalEmprestimos / (double)pageSize);
+            if (totalPages == 0)
+                totalPages = 1;
+
+            if (page < 1)
+                page = 1;
+
+            if (page > totalPages)
+                page = totalPages;
+
+            var emprestimos = query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToList();
+
+            foreach (var emprestimo in emprestimos)
+            {
+                emprestimo.AtualizarStatus(DateTime.Today);
+            }
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.HasPreviousPage = page > 1;
+            ViewBag.HasNextPage = page < totalPages;
+
+            ViewBag.TotalEmprestimos = totalEmprestimos;
+            ViewBag.Pendentes = pendentes;
+            ViewBag.Devolvidos = devolvidos;
 
             return View(emprestimos);
         }
 
+        /// <summary>
+        /// Exibe o formulário de criação de empréstimo.
+        /// </summary>
         public IActionResult Create()
         {
-            ViewBag.Usuarios = _context.Usuarios.ToList();
-            ViewBag.Livros = _context.Livros.Where(l => l.Disponivel).ToList();
-
-            return View();
+            var model = new EmprestimoFormViewModel();
+            CarregarCombos(model);
+            return View(model);
         }
 
+        /// <summary>
+        /// Processa o registro de um novo empréstimo.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(int usuarioId, int livroId, DateTime dataPrevistaDevolucao)
+        public IActionResult Create(EmprestimoFormViewModel model)
         {
-            void CarregarListas()
+            if (!ModelState.IsValid)
             {
-                ViewBag.Usuarios = _context.Usuarios.ToList();
-                ViewBag.Livros = _context.Livros.Where(l => l.Disponivel).ToList();
+                CarregarCombos(model);
+                return View(model);
             }
 
-            if (usuarioId <= 0 || livroId <= 0)
-            {
-                TempData["Erro"] = "Selecione um usuário e um livro.";
-                CarregarListas();
-                return View();
-            }
+            var usuarioExiste = _context.Usuarios.Any(u => u.Id == model.UsuarioId);
+            var livroExiste = _context.Livros.Any(l => l.Id == model.LivroId);
 
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Id == usuarioId);
-            if (usuario is null)
-            {
-                TempData["Erro"] = "Usuário não encontrado.";
-                CarregarListas();
-                return View();
-            }
+            if (!usuarioExiste)
+                ModelState.AddModelError(nameof(model.UsuarioId), "Usuário inválido.");
 
-            var livro = _context.Livros.FirstOrDefault(l => l.Id == livroId);
-            if (livro is null)
-            {
-                TempData["Erro"] = "Livro não encontrado.";
-                CarregarListas();
-                return View();
-            }
+            if (!livroExiste)
+                ModelState.AddModelError(nameof(model.LivroId), "Livro inválido.");
 
-            if (!livro.Disponivel)
+            if (!ModelState.IsValid)
             {
-                TempData["Erro"] = "Livro indisponível para empréstimo.";
-                CarregarListas();
-                return View();
-            }
-
-            if (dataPrevistaDevolucao.Date < DateTime.Today)
-            {
-                TempData["Erro"] = "A data prevista de devolução não pode ser no passado.";
-                CarregarListas();
-                return View();
+                CarregarCombos(model);
+                return View(model);
             }
 
             try
             {
-                var emprestimo = new Emprestimo(livro, usuario, dataPrevistaDevolucao);
+                _emprestimoAppService.Realizar(
+    model.LivroId!.Value,
+    model.UsuarioId!.Value,
+    model.DataPrevistaDevolucao!.Value);
 
-                _context.Emprestimos.Add(emprestimo);
-                _context.SaveChanges();
-
-                TempData["Sucesso"] = "Empréstimo realizado com sucesso!";
+                TempData["Sucesso"] = "Empréstimo registrado com sucesso!";
                 return RedirectToAction(nameof(Index));
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Erro de validação ao registrar empréstimo.");
+                ModelState.AddModelError(string.Empty, ex.Message);
+                CarregarCombos(model);
+                return View(model);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Operação inválida ao registrar empréstimo.");
+                ModelState.AddModelError(string.Empty, ex.Message);
+                CarregarCombos(model);
+                return View(model);
             }
             catch (Exception ex)
             {
-                TempData["Erro"] = $"Erro ao realizar empréstimo: {ex.Message}";
-                CarregarListas();
-                return View();
+                _logger.LogError(ex, "Erro inesperado ao registrar empréstimo.");
+                ModelState.AddModelError(string.Empty, "Ocorreu um erro inesperado ao registrar o empréstimo.");
+                CarregarCombos(model);
+                return View(model);
             }
         }
 
+        /// <summary>
+        /// Processa a devolução de um empréstimo.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Devolver(int id)
         {
-            var emprestimo = _context.Emprestimos
-                .Include(e => e.Livro)
-                .Include(e => e.Usuario)
-                .FirstOrDefault(e => e.Id == id);
+            var emprestimoExiste = _context.Emprestimos.Any(e => e.Id == id);
 
-            if (emprestimo is null)
+            if (!emprestimoExiste)
                 return NotFound();
-
-            return View(emprestimo);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult DevolverConfirmed(int id)
-        {
-            var emprestimo = _context.Emprestimos
-                .Include(e => e.Livro)
-                .Include(e => e.Usuario)
-                .FirstOrDefault(e => e.Id == id);
-
-            if (emprestimo is null)
-                return NotFound();
-
-            if (emprestimo.DataDevolucao is not null)
-            {
-                TempData["Erro"] = "Este empréstimo já foi devolvido.";
-                return RedirectToAction(nameof(Index));
-            }
 
             try
             {
-                emprestimo.Devolver();
-                _context.SaveChanges();
+                _emprestimoAppService.Devolver(id);
 
-                TempData["Sucesso"] = "Empréstimo devolvido com sucesso!";
-                return RedirectToAction(nameof(Index));
+                TempData["Sucesso"] = "Devolução registrada com sucesso!";
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Operação inválida ao devolver o empréstimo de ID {EmprestimoId}.", id);
+                TempData["Erro"] = ex.Message;
             }
             catch (Exception ex)
             {
-                TempData["Erro"] = ex.Message;
-                return RedirectToAction(nameof(Index));
+                _logger.LogError(ex, "Erro inesperado ao devolver o empréstimo de ID {EmprestimoId}.", id);
+                TempData["Erro"] = "Ocorreu um erro inesperado ao registrar a devolução.";
             }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        /// <summary>
+        /// Carrega os combos de usuários e livros disponíveis para o formulário de empréstimo.
+        /// </summary>
+        private void CarregarCombos(EmprestimoFormViewModel model)
+        {
+            model.Usuarios = _context.Usuarios
+                .AsNoTracking()
+                .OrderBy(u => u.Nome)
+                .Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = u.Nome
+                })
+                .ToList();
+
+            model.Livros = _context.Livros
+                .AsNoTracking()
+                .Where(l => l.Disponivel)
+                .OrderBy(l => l.Titulo)
+                .Select(l => new SelectListItem
+                {
+                    Value = l.Id.ToString(),
+                    Text = l.Titulo
+                })
+                .ToList();
         }
     }
 }

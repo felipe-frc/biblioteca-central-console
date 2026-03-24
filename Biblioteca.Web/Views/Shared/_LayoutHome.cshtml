@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <meta name="description" content="Biblioteca Áurea - Gerenciamento elegante de livros, usuários e empréstimos" />
+    <meta name="theme-color" content="#183d60" />
+
+    <title>Biblioteca Áurea - Gerenciamento de Biblioteca</title>
+
+    <link rel="icon" type="image/png" href="~/images/logo-biblioteca.png" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg site-navbar fixed-top">
+            <div class="container site-navbar-container">
+                <a class="navbar-brand site-brand"
+                   href="@Url.Action("Index", "Home")"
+                   aria-label="Biblioteca Áurea - Página Inicial">
+                    <img src="~/images/logo-biblioteca-completa.png"
+                         alt="Logo Biblioteca Áurea"
+                         class="site-logo" />
+                </a>
+
+                <button class="navbar-toggler site-navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#mainMenu"
+                        aria-controls="mainMenu"
+                        aria-expanded="false"
+                        aria-label="Abrir menu de navegação">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="mainMenu">
+                    <ul class="navbar-nav ms-auto site-nav-list">
+                        <li class="nav-item">
+                            <a class="nav-link site-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")"
+                               href="@Url.Action("Index", "Home")"
+                               aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "page" : "false")">
+                                Home
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link site-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Livros" ? "active" : "")"
+                               href="@Url.Action("Index", "Livros")"
+                               aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Livros" ? "page" : "false")">
+                                Livros
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link site-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuarios" ? "active" : "")"
+                               href="@Url.Action("Index", "Usuarios")"
+                               aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuarios" ? "page" : "false")">
+                                Usuários
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link site-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Emprestimos" ? "active" : "")"
+                               href="@Url.Action("Index", "Emprestimos")"
+                               aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Emprestimos" ? "page" : "false")">
+                                Empréstimos
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="site-main">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="site-footer-top">
+                <div class="row justify-content-center text-center g-4">
+                    <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center text-center">
+                        <h4 class="site-footer-title">Navegação</h4>
+                        <ul class="site-footer-links">
+                            <li><a href="@Url.Action("Index", "Home")">Home</a></li>
+                            <li><a href="@Url.Action("Index", "Livros")">Livros</a></li>
+                            <li><a href="@Url.Action("Index", "Usuarios")">Usuários</a></li>
+                            <li><a href="@Url.Action("Index", "Emprestimos")">Empréstimos</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center text-center">
+                        <h4 class="site-footer-title">Suporte</h4>
+                        <ul class="site-footer-links">
+                            <li><a href="#contato">Contato</a></li>
+                            <li><a href="#faq">FAQ</a></li>
+                            <li><a href="#politicas">Políticas</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center text-center">
+                        <h4 class="site-footer-title">Redes Sociais</h4>
+                        <ul class="site-footer-links">
+                            <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+                            <li><a href="https://facebook.com" target="_blank" rel="noopener noreferrer">Facebook</a></li>
+                            <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer">Twitter</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="site-footer-bottom text-center">
+                <p>&copy; 2026 Biblioteca Áurea. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,6 +1,5 @@
 ﻿using Biblioteca.Domain.Enums;
 
-
 namespace Biblioteca.Domain.Entities
 {
     public class Emprestimo
@@ -15,7 +14,6 @@ namespace Biblioteca.Domain.Entities
 
         public Emprestimo(int id, Livro livro, Usuario usuario, DateTime dataPrevistaDevolucao)
         {
-
             if (id <= 0)
                 throw new ArgumentOutOfRangeException(nameof(id), "Id deve ser maior que zero.");
 
@@ -28,8 +26,10 @@ namespace Biblioteca.Domain.Entities
             if (dataPrevistaDevolucao.Date < DateTime.Today)
                 throw new ArgumentException("A data da devolução não pode ser no passado.", nameof(dataPrevistaDevolucao));
 
-            livro.MarcarComoEmprestado();
+            if (dataPrevistaDevolucao.Date > DateTime.Today.AddDays(365))
+                throw new ArgumentException("A data prevista para devolução não pode ultrapassar 365 dias a partir de hoje.", nameof(dataPrevistaDevolucao));
 
+            livro.MarcarComoEmprestado();
 
             Id = id;
             Livro = livro;
@@ -37,8 +37,6 @@ namespace Biblioteca.Domain.Entities
             DataEmprestimo = DateTime.Now;
             DataPrevistaDevolucao = dataPrevistaDevolucao.Date;
             Status = StatusEmprestimo.Ativo;
-
-
         }
 
         private Emprestimo() { }
@@ -53,6 +51,9 @@ namespace Biblioteca.Domain.Entities
 
             if (dataPrevistaDevolucao.Date < DateTime.Today)
                 throw new ArgumentException("A data da devolução não pode ser no passado.", nameof(dataPrevistaDevolucao));
+
+            if (dataPrevistaDevolucao.Date > DateTime.Today.AddDays(365))
+                throw new ArgumentException("A data prevista para devolução não pode ultrapassar 365 dias a partir de hoje.", nameof(dataPrevistaDevolucao));
 
             livro.MarcarComoEmprestado();
 
@@ -75,7 +76,6 @@ namespace Biblioteca.Domain.Entities
                 Status = StatusEmprestimo.Atrasado;
             else
                 Status = StatusEmprestimo.Devolvido;
-
         }
 
         public bool EstaAtrasado(DateTime dataReferencia)
@@ -98,9 +98,5 @@ namespace Biblioteca.Domain.Entities
                 ? StatusEmprestimo.Atrasado
                 : StatusEmprestimo.Ativo;
         }
-    
-
     }
-
-
 }

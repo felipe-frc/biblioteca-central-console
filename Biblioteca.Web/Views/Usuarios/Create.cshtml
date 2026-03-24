@@ -1,27 +1,56 @@
-﻿@{
+﻿@model Biblioteca.Web.ViewModels.UsuarioFormViewModel
+
+@{
     ViewData["Title"] = "Novo Usuário";
+    Layout = "~/Views/Shared/_LayoutInner.cshtml";
 }
 
-<h2>Novo Usuário</h2>
+<section class="crud-page crud-form-page">
+    <div class="container">
+        <div class="crud-header crud-header-form">
+            <div>
+                <h1 class="crud-title">Novo Usuário</h1>
+                <span class="crud-line"></span>
+            </div>
+        </div>
 
-<form asp-action="Create" method="post">
-    @Html.AntiForgeryToken()
+        <div class="crud-form-card">
+            <form asp-action="Create" method="post" novalidate>
+                @Html.AntiForgeryToken()
 
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div asp-validation-summary="All" class="alert alert-danger"></div>
-    }
+                <div asp-validation-summary="ModelOnly" class="crud-alert crud-alert-danger crud-validation-summary"></div>
 
-    <div class="mb-3">
-        <label class="form-label">Nome</label>
-        <input class="form-control" name="nome" />
+                <p class="mb-4 fw-semibold text-danger">
+                    * Campo obrigatório
+                </p>
+
+                <div class="crud-form-grid">
+                    <div class="crud-form-group">
+                        <label asp-for="Nome" class="crud-form-label">
+                            Nome <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Nome" class="crud-form-control" placeholder="Digite o nome do usuário" />
+                        <span asp-validation-for="Nome" class="crud-field-validation"></span>
+                    </div>
+
+                    <div class="crud-form-group">
+                        <label asp-for="Email" class="crud-form-label">
+                            E-mail <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Email" class="crud-form-control" placeholder="Digite o e-mail do usuário" />
+                        <span asp-validation-for="Email" class="crud-field-validation"></span>
+                    </div>
+                </div>
+
+                <div class="crud-form-actions">
+                    <button type="submit" class="crud-primary-btn">Salvar Usuário</button>
+                    <a asp-action="Index" class="crud-secondary-btn">Cancelar</a>
+                </div>
+            </form>
+        </div>
     </div>
+</section>
 
-    <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input class="form-control" name="email" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Salvar</button>
-    <a class="btn btn-secondary" asp-controller="Usuarios" asp-action="Index">Cancelar</a>
-</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,63 +1,169 @@
 ﻿@model IEnumerable<Biblioteca.Domain.Entities.Livro>
+@using System.Linq
 
-@if (TempData["Erro"] is not null)
-{
-    <div class="alert alert-danger">@TempData["Erro"]</div>
+@{
+    ViewData["Title"] = "Livros";
+
+    var livros = Model?.ToList() ?? new List<Biblioteca.Domain.Entities.Livro>();
+    var totalLivros = ViewBag.TotalLivros is int tl ? tl : livros.Count;
+    var disponiveis = ViewBag.TotalDisponiveis is int td ? td : livros.Count(l => l.Disponivel);
+    var anoMaisRecente = ViewBag.AnoMaisRecente?.ToString() ?? "-";
+
+    var currentPage = ViewBag.CurrentPage is int cp ? cp : 1;
+    var totalPages = ViewBag.TotalPages is int tp ? tp : 1;
+    var hasPreviousPage = ViewBag.HasPreviousPage is bool hp && hp;
+    var hasNextPage = ViewBag.HasNextPage is bool hn && hn;
 }
 
-@if (TempData["Sucesso"] is not null)
-{
-    <div class="alert alert-success">@TempData["Sucesso"]</div>
-}
+<section class="crud-page crud-page-livros">
+    <div class="container">
+        @if (TempData["Erro"] is not null)
+        {
+            <div class="crud-alert crud-alert-danger">@TempData["Erro"]</div>
+        }
 
-<h2>Livros</h2>
+        @if (TempData["Sucesso"] is not null)
+        {
+            <div class="crud-alert crud-alert-success">@TempData["Sucesso"]</div>
+        }
 
-<a class="btn btn-primary mb-3" asp-controller="Livros" asp-action="Create">Novo Livro</a>
+        <div class="crud-header">
+            <h1 class="crud-title">Livros</h1>
+            <span class="crud-line"></span>
+            <a class="crud-primary-btn" asp-controller="Livros" asp-action="Create">+ Novo Livro</a>
+        </div>
 
-@if (!Model.Any())
-{
-    <div class="alert alert-info">Nenhum livro cadastrado.</div>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Título</th>
-                <th>Autor</th>
-                <th>Ano</th>
-                <th>Disponível</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var livro in Model)
+        @if (!livros.Any())
+        {
+            <div class="crud-empty-state">
+                <h3>Nenhum livro cadastrado.</h3>
+                <p>Cadastre o primeiro livro para começar a organizar sua biblioteca.</p>
+            </div>
+        }
+        else
+        {
+            <div class="crud-table-card">
+                <div class="crud-table-wrap">
+                    <table class="crud-table">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Título</th>
+                                <th>Autor</th>
+                                <th>Ano</th>
+                                <th>Disponível</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var livro in livros)
+                            {
+                                <tr>
+                                    <td class="crud-id" data-label="Id">@livro.Id</td>
+                                    <td class="crud-strong" data-label="Título">@livro.Titulo</td>
+                                    <td data-label="Autor">@livro.Autor</td>
+                                    <td data-label="Ano">@livro.AnoPublicacao</td>
+                                    <td data-label="Disponível">
+                                        <span class="crud-pill @(livro.Disponivel ? "crud-pill-success" : "crud-pill-danger")">
+                                            @(livro.Disponivel ? "Sim" : "Não")
+                                        </span>
+                                    </td>
+                                    <td class="crud-actions-cell" data-label="Ações">
+                                        <div class="crud-actions">
+                                            <a class="crud-action-btn crud-action-btn-edit"
+                                               asp-controller="Livros"
+                                               asp-action="Edit"
+                                               asp-route-id="@livro.Id">
+                                                <span class="crud-action-icon" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M12 20h9" />
+                                                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                                                    </svg>
+                                                </span>
+                                                Editar
+                                            </a>
+
+                                            <a class="crud-action-btn crud-action-btn-delete"
+                                               asp-controller="Livros"
+                                               asp-action="Delete"
+                                               asp-route-id="@livro.Id">
+                                                <span class="crud-action-icon" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M3 6h18" />
+                                                        <path d="M8 6V4h8v2" />
+                                                        <path d="M19 6l-1 14H6L5 6" />
+                                                        <path d="M10 11v6" />
+                                                        <path d="M14 11v6" />
+                                                    </svg>
+                                                </span>
+                                                Excluir
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            @if (totalPages > 0)
             {
-                <tr>
-                    <td>@livro.Id</td>
-                    <td>@livro.Titulo</td>
-                    <td>@livro.Autor</td>
-                    <td>@livro.AnoPublicacao</td>
-                    <td>@(livro.Disponivel ? "Sim" : "Não")</td>
-                    <td>
-                        <a class="btn btn-sm btn-warning"
-                           asp-controller="Livros"
-                           asp-action="Edit"
-                           asp-route-id="@livro.Id">
-                            Editar
-                        </a>
+                <nav class="crud-pagination" aria-label="Paginação">
+                    @if (hasPreviousPage)
+                    {
+                        <a class="crud-pagination-link" asp-action="Index" asp-route-page="@(currentPage - 1)">Anterior</a>
+                    }
+                    else
+                    {
+                        <span class="crud-pagination-link is-disabled">Anterior</span>
+                    }
 
-                        <a class="btn btn-sm btn-danger ms-2"
-                           asp-controller="Livros"
-                           asp-action="Delete"
-                           asp-route-id="@livro.Id">
-                            Excluir
-                        </a>
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        if (i == currentPage)
+                        {
+                            <span class="crud-pagination-link is-active">@i</span>
+                        }
+                        else
+                        {
+                            <a class="crud-pagination-link" asp-action="Index" asp-route-page="@i">@i</a>
+                        }
+                    }
 
-                    </td>
-                </tr>
+                    @if (hasNextPage)
+                    {
+                        <a class="crud-pagination-link" asp-action="Index" asp-route-page="@(currentPage + 1)">Próxima</a>
+                    }
+                    else
+                    {
+                        <span class="crud-pagination-link is-disabled">Próxima</span>
+                    }
+                </nav>
             }
-        </tbody>
-    </table>
-}
+
+            <div class="row g-4 crud-stats-row">
+                <div class="col-lg-4 col-md-6">
+                    <div class="crud-stat-card crud-stat-gold">
+                        <span class="crud-stat-label">Total de Livros</span>
+                        <strong class="crud-stat-value">@totalLivros</strong>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="crud-stat-card crud-stat-blue">
+                        <span class="crud-stat-label">Disponíveis</span>
+                        <strong class="crud-stat-value">@disponiveis</strong>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="crud-stat-card crud-stat-gold">
+                        <span class="crud-stat-label">Ano Mais Recente</span>
+                        <strong class="crud-stat-value">@anoMaisRecente</strong>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>

@@ -1,44 +1,68 @@
-﻿@{
+﻿@model Biblioteca.Web.ViewModels.EmprestimoFormViewModel
+
+@{
     ViewData["Title"] = "Novo Empréstimo";
+    Layout = "~/Views/Shared/_LayoutInner.cshtml";
 }
 
-<h2>Novo Empréstimo</h2>
+<section class="crud-page crud-form-page">
+    <div class="container">
+        <div class="crud-header crud-header-form">
+            <div>
+                <h1 class="crud-title">Novo Empréstimo</h1>
+                <span class="crud-line"></span>
+            </div>
+        </div>
 
-@if (TempData["Erro"] is not null)
-{
-    <div class="alert alert-danger">@TempData["Erro"]</div>
+        <div class="crud-form-card">
+            <form asp-action="Create" method="post" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="crud-alert crud-alert-danger crud-validation-summary"></div>
+
+                <p class="mb-4 fw-semibold text-danger">
+                    * Campo obrigatório
+                </p>
+
+                <div class="crud-form-grid">
+                    <div class="crud-form-group">
+                        <label asp-for="UsuarioId" class="crud-form-label">
+                            Usuário <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="UsuarioId" asp-items="Model.Usuarios" class="crud-form-control crud-form-select">
+                            <option value="">Selecione...</option>
+                        </select>
+                        <span asp-validation-for="UsuarioId" class="crud-field-validation"></span>
+                    </div>
+
+                    <div class="crud-form-group">
+                        <label asp-for="LivroId" class="crud-form-label">
+                            Livro <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="LivroId" asp-items="Model.Livros" class="crud-form-control crud-form-select">
+                            <option value="">Selecione...</option>
+                        </select>
+                        <span asp-validation-for="LivroId" class="crud-field-validation"></span>
+                    </div>
+
+                    <div class="crud-form-group crud-form-group-small">
+                        <label asp-for="DataPrevistaDevolucao" class="crud-form-label">
+                            Data prevista para devolução <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="DataPrevistaDevolucao" class="crud-form-control" type="date" />
+                        <span asp-validation-for="DataPrevistaDevolucao" class="crud-field-validation"></span>
+                    </div>
+                </div>
+
+                <div class="crud-form-actions">
+                    <button type="submit" class="crud-primary-btn">Salvar Empréstimo</button>
+                    <a asp-action="Index" class="crud-secondary-btn">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
 }
-
-<form asp-action="Create" method="post">
-    @Html.AntiForgeryToken()
-
-    <div class="mb-3">
-        <label class="form-label">Usuário</label>
-        <select class="form-select" name="usuarioId" required>
-            <option value="">-- selecione --</option>
-            @foreach (var u in (IEnumerable<Biblioteca.Domain.Entities.Usuario>)ViewBag.Usuarios)
-            {
-                <option value="@u.Id">@u.Nome</option>
-            }
-        </select>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Livro (somente disponíveis)</label>
-        <select class="form-select" name="livroId" required>
-            <option value="">-- selecione --</option>
-            @foreach (var l in (IEnumerable<Biblioteca.Domain.Entities.Livro>)ViewBag.Livros)
-            {
-                <option value="@l.Id">@l.Titulo</option>
-            }
-        </select>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Data prevista de devolução</label>
-        <input class="form-control" type="date" name="dataPrevistaDevolucao" required />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Salvar</button>
-    <a class="btn btn-secondary" asp-controller="Emprestimos" asp-action="Index">Cancelar</a>
-</form>

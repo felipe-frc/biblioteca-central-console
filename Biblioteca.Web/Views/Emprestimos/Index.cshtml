@@ -1,70 +1,167 @@
-﻿
+﻿@model IEnumerable<Biblioteca.Domain.Entities.Emprestimo>
+@using System.Linq
 
-@model IEnumerable<Biblioteca.Domain.Entities.Emprestimo>
+@{
+    ViewData["Title"] = "Empréstimos";
+    Layout = "~/Views/Shared/_LayoutInner.cshtml";
 
-<h2>Empréstimos</h2>
+    var emprestimos = Model?.ToList() ?? new List<Biblioteca.Domain.Entities.Emprestimo>();
+    var totalEmprestimos = ViewBag.TotalEmprestimos is int te ? te : emprestimos.Count;
+    var pendentes = ViewBag.Pendentes is int pe ? pe : emprestimos.Count(e => e.DataDevolucao is null);
+    var devolvidos = ViewBag.Devolvidos is int de ? de : emprestimos.Count(e => e.DataDevolucao is not null);
 
-@if (TempData["Erro"] is not null)
-{
-    <div class="alert alert-danger">@TempData["Erro"]</div>
+    var currentPage = ViewBag.CurrentPage is int cp ? cp : 1;
+    var totalPages = ViewBag.TotalPages is int tp ? tp : 1;
+    var hasPreviousPage = ViewBag.HasPreviousPage is bool hp && hp;
+    var hasNextPage = ViewBag.HasNextPage is bool hn && hn;
 }
 
-@if (TempData["Sucesso"] is not null)
-{
-    <div class="alert alert-success">@TempData["Sucesso"]</div>
-}
+<section class="crud-page crud-page-emprestimos">
+    <div class="container">
+        @if (TempData["Erro"] is not null)
+        {
+            <div class="crud-alert crud-alert-danger">@TempData["Erro"]</div>
+        }
 
-<a class="btn btn-primary mb-3" asp-controller="Emprestimos" asp-action="Create">Novo Empréstimo</a>
+        @if (TempData["Sucesso"] is not null)
+        {
+            <div class="crud-alert crud-alert-success">@TempData["Sucesso"]</div>
+        }
 
+        <div class="crud-header">
+            <h1 class="crud-title">Empréstimos</h1>
+            <span class="crud-line"></span>
+            <a asp-action="Create" class="crud-primary-btn">+ Novo Empréstimo</a>
+        </div>
 
+        @if (!emprestimos.Any())
+        {
+            <div class="crud-empty-state">
+                <h3>Nenhum empréstimo cadastrado.</h3>
+                <p>Registre o primeiro empréstimo para acompanhar as devoluções.</p>
+            </div>
+        }
+        else
+        {
+            <div class="crud-table-card">
+                <div class="crud-table-wrap">
+                    <table class="crud-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Livro</th>
+                                <th>Usuário</th>
+                                <th>Retirada</th>
+                                <th>Previsão</th>
+                                <th>Devolução</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var e in emprestimos)
+                            {
+                                <tr>
+                                    <td class="crud-id" data-label="ID">@e.Id</td>
+                                    <td class="crud-strong" data-label="Livro">@e.Livro?.Titulo</td>
+                                    <td data-label="Usuário">@e.Usuario?.Nome</td>
+                                    <td data-label="Retirada">@e.DataEmprestimo.ToString("dd/MM/yyyy")</td>
+                                    <td data-label="Previsão">@e.DataPrevistaDevolucao.ToString("dd/MM/yyyy")</td>
+                                    <td data-label="Devolução">
+                                        @(e.DataDevolucao is null ? "-" : e.DataDevolucao.Value.ToString("dd/MM/yyyy"))
+                                    </td>
+                                    <td data-label="Status">
+                                        <span class="crud-pill @(e.DataDevolucao is null ? "crud-pill-warning" : "crud-pill-success")">
+                                            @(e.DataDevolucao is null ? "Pendente" : "Devolvido")
+                                        </span>
+                                    </td>
+                                    <td class="crud-actions-cell" data-label="Ações">
+                                        <div class="crud-actions">
+                                            @if (e.DataDevolucao is null)
+                                            {
+                                                <form asp-action="Devolver" asp-route-id="@e.Id" method="post" class="crud-inline-form">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="crud-action-btn crud-action-btn-edit">
+                                                        <span class="crud-action-icon" aria-hidden="true">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                                <path d="M21 12a9 9 0 1 1-3.2-6.9" />
+                                                                <path d="M21 3v6h-6" />
+                                                            </svg>
+                                                        </span>
+                                                        Devolver
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <span class="crud-action-dash">—</span>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-@if (!Model.Any())
-{
-    <div class="alert alert-info">Nenhum empréstimo cadastrado.</div>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Livro</th>
-                <th>Usuário</th>
-                <th>Empréstimo</th>
-                <th>Prevista</th>
-                <th>Devolução</th>
-                <th>Status</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var e in Model)
+            @if (totalPages > 0)
             {
-                <tr>
-                    <td>@e.Id</td>
-                    <td>@e.Livro.Titulo</td>
-                    <td>@e.Usuario.Nome</td>
-                    <td>@e.DataEmprestimo.ToString("dd/MM/yyyy")</td>
-                    <td>@e.DataPrevistaDevolucao.ToString("dd/MM/yyyy")</td>
-                    <td>@(e.DataDevolucao is null ? "-" : e.DataDevolucao.Value.ToString("dd/MM/yyyy"))</td>
-                    <td>@e.Status</td>
-                    <td>
-                        @if (e.DataDevolucao is null)
+                <nav class="crud-pagination" aria-label="Paginação">
+                    @if (hasPreviousPage)
+                    {
+                        <a class="crud-pagination-link" asp-action="Index" asp-route-page="@(currentPage - 1)">Anterior</a>
+                    }
+                    else
+                    {
+                        <span class="crud-pagination-link is-disabled">Anterior</span>
+                    }
+
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        if (i == currentPage)
                         {
-                            <a class="btn btn-sm btn-success"
-                               asp-controller="Emprestimos"
-                               asp-action="Devolver"
-                               asp-route-id="@e.Id">
-                                Devolver
-                            </a>
+                            <span class="crud-pagination-link is-active">@i</span>
                         }
                         else
                         {
-                            <span class="text-muted">-</span>
+                            <a class="crud-pagination-link" asp-action="Index" asp-route-page="@i">@i</a>
                         }
-                    </td>
-                </tr>
+                    }
+
+                    @if (hasNextPage)
+                    {
+                        <a class="crud-pagination-link" asp-action="Index" asp-route-page="@(currentPage + 1)">Próxima</a>
+                    }
+                    else
+                    {
+                        <span class="crud-pagination-link is-disabled">Próxima</span>
+                    }
+                </nav>
             }
-        </tbody>
-    </table>
-}
+
+            <div class="row g-4 crud-stats-row">
+                <div class="col-lg-4 col-md-6">
+                    <div class="crud-stat-card crud-stat-gold">
+                        <span class="crud-stat-label">Total de Empréstimos</span>
+                        <strong class="crud-stat-value">@totalEmprestimos</strong>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="crud-stat-card crud-stat-blue">
+                        <span class="crud-stat-label">Pendentes</span>
+                        <strong class="crud-stat-value">@pendentes</strong>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="crud-stat-card crud-stat-gold">
+                        <span class="crud-stat-label">Devolvidos</span>
+                        <strong class="crud-stat-value">@devolvidos</strong>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>

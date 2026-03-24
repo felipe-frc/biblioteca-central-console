@@ -2,7 +2,6 @@
 using Biblioteca.Services;
 using System.Globalization;
 
-
 var service = new BibliotecaService();
 
 // Seed (dados iniciais)

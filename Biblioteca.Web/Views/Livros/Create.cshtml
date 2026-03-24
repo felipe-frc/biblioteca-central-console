@@ -1,31 +1,64 @@
-﻿@{
+﻿@model Biblioteca.Web.ViewModels.LivroFormViewModel
+
+@{
     ViewData["Title"] = "Novo Livro";
+    Layout = "~/Views/Shared/_LayoutInner.cshtml";
 }
 
-<h2>Novo Livro</h2>
+<section class="crud-page crud-form-page">
+    <div class="container">
+        <div class="crud-header crud-header-form">
+            <div>
+                <h1 class="crud-title">Novo Livro</h1>
+                <span class="crud-line"></span>
+            </div>
+        </div>
 
-<form asp-action="Create" method="post">
-    @Html.AntiForgeryToken()
+        <div class="crud-form-card">
+            <form asp-action="Create" method="post" novalidate>
+                @Html.AntiForgeryToken()
 
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div asp-validation-summary="All" class="alert alert-danger"></div>
-    }
-    <div class="mb-3">
-        <label class="form-label">Título</label>
-        <input class="form-control" name="titulo" />
+                <div asp-validation-summary="ModelOnly" class="crud-alert crud-alert-danger crud-validation-summary"></div>
+
+                <p class="mb-4 fw-semibold text-danger">
+                    * Campo obrigatório
+                </p>
+
+                <div class="crud-form-grid">
+                    <div class="crud-form-group">
+                        <label asp-for="Titulo" class="crud-form-label">
+                            Título <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Titulo" class="crud-form-control" placeholder="Digite o título do livro" />
+                        <span asp-validation-for="Titulo" class="crud-field-validation"></span>
+                    </div>
+
+                    <div class="crud-form-group">
+                        <label asp-for="Autor" class="crud-form-label">
+                            Autor <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Autor" class="crud-form-control" placeholder="Digite o nome do autor" />
+                        <span asp-validation-for="Autor" class="crud-field-validation"></span>
+                    </div>
+
+                    <div class="crud-form-group crud-form-group-small">
+                        <label asp-for="AnoPublicacao" class="crud-form-label">
+                            Ano de Publicação <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="AnoPublicacao" class="crud-form-control" type="number" placeholder="YYYY" />
+                        <span asp-validation-for="AnoPublicacao" class="crud-field-validation"></span>
+                    </div>
+                </div>
+
+                <div class="crud-form-actions">
+                    <button type="submit" class="crud-primary-btn">Salvar Livro</button>
+                    <a asp-action="Index" class="crud-secondary-btn">Cancelar</a>
+                </div>
+            </form>
+        </div>
     </div>
+</section>
 
-    <div class="mb-3">
-        <label class="form-label">Autor</label>
-        <input class="form-control" name="autor" />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Ano de publicação</label>
-        <input class="form-control" name="anoPublicacao" type="number" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Salvar</button>
-    <a class="btn btn-secondary" asp-controller="Livros" asp-action="Index">Cancelar</a>
-</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

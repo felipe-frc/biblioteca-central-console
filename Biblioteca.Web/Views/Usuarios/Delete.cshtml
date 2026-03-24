@@ -2,38 +2,64 @@
 
 @{
     bool temEmprestimoAtivo = ViewBag.TemEmprestimoAtivo ?? false;
-}
-
-@{
+    bool temHistoricoEmprestimo = ViewBag.TemHistoricoEmprestimo ?? false;
     ViewData["Title"] = "Excluir Usuário";
+    Layout = "~/Views/Shared/_LayoutInner.cshtml";
 }
 
-<h2>Excluir Usuário</h2>
+<section class="crud-page crud-form-page">
+    <div class="container">
+        <div class="crud-header crud-header-form">
+            <div>
+                <h1 class="crud-title">Excluir Usuário</h1>
+                <span class="crud-line"></span>
+            </div>
+        </div>
 
-<div class="alert alert-warning">
-    Tem certeza que deseja excluir o usuário abaixo?
-</div>
+        <div class="crud-form-card">
+            <div class="crud-alert crud-alert-warning">
+                Tem certeza que deseja excluir o usuário abaixo?
+            </div>
 
-<ul class="list-group mb-3">
-    <li class="list-group-item"><strong>Id:</strong> @Model.Id</li>
-    <li class="list-group-item"><strong>Nome:</strong> @Model.Nome</li>
-    <li class="list-group-item"><strong>Email:</strong> @Model.Email</li>
-</ul>
+            <div class="crud-delete-list">
+                <div class="crud-delete-item"><strong>Id:</strong> @Model.Id</div>
+                <div class="crud-delete-item"><strong>Nome:</strong> @Model.Nome</div>
+                <div class="crud-delete-item"><strong>E-mail:</strong> @Model.Email</div>
+            </div>
 
-@if (temEmprestimoAtivo)
-{
-    <div class="alert alert-danger">
-        Não é possível excluir este usuário porque existe empréstimo ativo.
-        Primeiro devolva os empréstimos desse usuário.
+            @if (temEmprestimoAtivo)
+            {
+                <div class="crud-alert crud-alert-danger">
+                    Não é possível excluir este usuário porque existe empréstimo em aberto.
+                    Primeiro devolva os empréstimos desse usuário.
+                </div>
+
+                <div class="crud-form-actions">
+                    <a asp-controller="Usuarios" asp-action="Index" class="crud-secondary-btn">Voltar</a>
+                </div>
+            }
+            else if (temHistoricoEmprestimo)
+            {
+                <div class="crud-alert crud-alert-danger">
+                    Não é possível excluir este usuário porque ele possui empréstimos registrados no histórico.
+                </div>
+
+                <div class="crud-form-actions">
+                    <a asp-controller="Usuarios" asp-action="Index" class="crud-secondary-btn">Voltar</a>
+                </div>
+            }
+            else
+            {
+                <form asp-action="DeleteConfirmed" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+
+                    <div class="crud-form-actions">
+                        <button type="submit" class="crud-action-btn crud-action-btn-delete">Confirmar Exclusão</button>
+                        <a asp-controller="Usuarios" asp-action="Index" class="crud-secondary-btn">Cancelar</a>
+                    </div>
+                </form>
+            }
+        </div>
     </div>
-
-    <a class="btn btn-secondary" asp-controller="Usuarios" asp-action="Index">Voltar</a>
-}
-else
-{
-    <form asp-action="DeleteConfirmed" method="post">
-        <input type="hidden" name="id" value="@Model.Id" />
-        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
-        <a class="btn btn-secondary" asp-controller="Usuarios" asp-action="Index">Cancelar</a>
-    </form>
-}
+</section>

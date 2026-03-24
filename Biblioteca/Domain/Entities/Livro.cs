@@ -1,102 +1,100 @@
-﻿
-
-namespace Biblioteca.Domain.Entities
+﻿namespace Biblioteca.Domain.Entities
 {
+    /// <summary>
+    /// Entidade que representa um livro na biblioteca.
+    /// </summary>
     public class Livro
     {
+        private const int AnoPublicacaoMinimo = 1450;
 
         public int Id { get; private set; }
         public string Titulo { get; private set; } = default!;
         public string Autor { get; private set; } = default!;
         public int AnoPublicacao { get; private set; }
         public bool Disponivel { get; private set; }
-       
-        public Livro(int id, string titulo, string autor, int anoPublicacao)
-        {
-            if (id <= 0)
-               throw new ArgumentOutOfRangeException(nameof(id), "O ID deve ser maior do que zero.");
-
-
-            if (string.IsNullOrWhiteSpace(titulo))
-                throw new ArgumentException("Título não pode ser vazio.", nameof(titulo));
-
-            if (string.IsNullOrWhiteSpace(autor))
-                throw new ArgumentException("Autor não pode ser vazio.", nameof(autor));
-
-            int anoAtual = DateTime.Now.Year;
-            if (anoPublicacao < 1450 || anoPublicacao > anoAtual)
-                throw new ArgumentOutOfRangeException(nameof(anoPublicacao), $"Ano de publicação deve estar entre 1450 e {anoAtual}.");
-
-            Id = id;
-            Titulo = titulo;
-            Autor = autor;
-            AnoPublicacao = anoPublicacao;
-            Disponivel = true;
-        }
 
         private Livro() { }
 
+        /// <summary>
+        /// Construtor para criação de novo livro.
+        /// </summary>
         public Livro(string titulo, string autor, int anoPublicacao)
         {
-            if (string.IsNullOrWhiteSpace(titulo))
-                throw new ArgumentException("Título não pode ser vazio.", nameof(titulo));
+            ValidarDados(titulo, autor, anoPublicacao);
 
-            if (string.IsNullOrWhiteSpace(autor))
-                throw new ArgumentException("Autor não pode ser vazio.", nameof(autor));
-
-            int anoAtual = DateTime.Now.Year;
-            if (anoPublicacao < 1450 || anoPublicacao > anoAtual)
-                throw new ArgumentOutOfRangeException(nameof(anoPublicacao), $"Ano de publicação deve estar entre 1450 e {anoAtual}.");
-
-            Titulo = titulo;
-            Autor = autor;
+            Titulo = titulo.Trim();
+            Autor = autor.Trim();
             AnoPublicacao = anoPublicacao;
             Disponivel = true;
         }
 
+        /// <summary>
+        /// Construtor para criação de livro com ID, usado em testes.
+        /// </summary>
+        public Livro(int id, string titulo, string autor, int anoPublicacao)
+        {
+            if (id <= 0)
+                throw new ArgumentOutOfRangeException(nameof(id), "O ID deve ser maior que zero.");
+
+            ValidarDados(titulo, autor, anoPublicacao);
+
+            Id = id;
+            Titulo = titulo.Trim();
+            Autor = autor.Trim();
+            AnoPublicacao = anoPublicacao;
+            Disponivel = true;
+        }
+
+        /// <summary>
+        /// Valida os dados do livro.
+        /// </summary>
+        private static void ValidarDados(string titulo, string autor, int anoPublicacao)
+        {
+            if (string.IsNullOrWhiteSpace(titulo))
+                throw new ArgumentException("O título não pode ser vazio.", nameof(titulo));
+
+            if (string.IsNullOrWhiteSpace(autor))
+                throw new ArgumentException("O autor não pode ser vazio.", nameof(autor));
+
+            int anoAtual = DateTime.Now.Year;
+            if (anoPublicacao < AnoPublicacaoMinimo || anoPublicacao > anoAtual)
+                throw new ArgumentOutOfRangeException(
+                    nameof(anoPublicacao),
+                    $"O ano de publicação deve estar entre {AnoPublicacaoMinimo} e {anoAtual}.");
+        }
+
+        /// <summary>
+        /// Marca o livro como emprestado.
+        /// </summary>
         public void MarcarComoEmprestado()
         {
-
             if (!Disponivel)
-            {
-
-                throw new InvalidOperationException($"O livro: {Titulo} já está emprestado.");
-            }
+                throw new InvalidOperationException($"O livro '{Titulo}' já está emprestado.");
 
             Disponivel = false;
         }
 
+        /// <summary>
+        /// Marca o livro como devolvido.
+        /// </summary>
         public void MarcarComoDevolvido()
         {
             if (Disponivel)
-            {
-
-                throw new InvalidOperationException($"O livro: {Titulo} está disponível para empréstimo.");
-            }
+                throw new InvalidOperationException($"O livro '{Titulo}' já está disponível para empréstimo.");
 
             Disponivel = true;
         }
 
+        /// <summary>
+        /// Atualiza os dados do livro.
+        /// </summary>
         public void AtualizarDados(string titulo, string autor, int anoPublicacao)
         {
-            if (string.IsNullOrWhiteSpace(titulo))
-                throw new ArgumentException("Título não pode ser vazio.", nameof(titulo));
-
-            if (string.IsNullOrWhiteSpace(autor))
-                throw new ArgumentException("Autor não pode ser vazio.", nameof(autor));
-
-            int anoAtual = DateTime.Now.Year;
-            if (anoPublicacao < 1450 || anoPublicacao > anoAtual)
-                throw new ArgumentOutOfRangeException(nameof(anoPublicacao), $"Ano de publicação deve estar entre 1450 e {anoAtual}.");
+            ValidarDados(titulo, autor, anoPublicacao);
 
             Titulo = titulo.Trim();
             Autor = autor.Trim();
             AnoPublicacao = anoPublicacao;
         }
-
-
-
-
-
     }
 }

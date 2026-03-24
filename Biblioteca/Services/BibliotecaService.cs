@@ -2,9 +2,9 @@
 using Biblioteca.Domain.Enums;
 
 
-namespace Biblioteca.Services
+ namespace Biblioteca.Services
 {
-    internal class BibliotecaService
+    public class BibliotecaService : IEmprestimoService
     {
         private List<Livro> _livros = new();
         private List<Usuario> _usuarios = new();
@@ -16,24 +16,28 @@ namespace Biblioteca.Services
                 throw new ArgumentOutOfRangeException(nameof(idLivro), "O id deve ser maior do que zero.");
 
             if (idUsuario <= 0)
-                throw new ArgumentOutOfRangeException(nameof(idUsuario), "o id deve ser maior do que zero.");
+                throw new ArgumentOutOfRangeException(nameof(idUsuario), "O id deve ser maior do que zero.");
 
             if (dataPrevistaDevolucao.Date < DateTime.Today)
-                throw new ArgumentException("A data prevista para devolução não pode ser menor do que a data de hoje.");
+                throw new ArgumentException("A data prevista para devolução não pode ser menor do que a data de hoje.", nameof(dataPrevistaDevolucao));
+
+            if (dataPrevistaDevolucao.Date > DateTime.Today.AddDays(365))
+                throw new ArgumentException("A data prevista para devolução não pode ultrapassar 365 dias a partir de hoje.", nameof(dataPrevistaDevolucao));
 
             var livro = BuscarLivroPorId(idLivro);
             var usuario = BuscarUsuarioPorId(idUsuario);
+
             if (livro is null)
                 throw new InvalidOperationException("Livro não encontrado.");
+
             if (usuario is null)
                 throw new InvalidOperationException("Usuário não encontrado.");
 
-            int novoId = _emprestimos.Count + 1;
+            int novoId = _emprestimos.Any() ? _emprestimos.Max(e => e.Id) + 1 : 1;
             var emprestimo = new Emprestimo(novoId, livro, usuario, dataPrevistaDevolucao);
 
             _emprestimos.Add(emprestimo);
             return emprestimo;
-
         }
 
         public void CadastrarLivro(Livro livro)
@@ -92,17 +96,25 @@ namespace Biblioteca.Services
             emprestimo.Devolver();
         }
 
-        public List<Emprestimo> ListarEmprestimosAtrasados(DateTime dataReferencia)
+        public List<Emprestimo> ListarEmprestimosAtrasados(DateTime dataReferencia, int page = 1, int pageSize = 10)
         {
-            var atrasados = new List<Emprestimo>();
+            const int defaultPageSize = 10;
 
-            foreach (var emprestimo in _emprestimos)
-            {
-                emprestimo.AtualizarStatus(dataReferencia);
+            if (page <= 0)
+                page = 1;
 
-                if (emprestimo.Status == StatusEmprestimo.Atrasado)
-                    atrasados.Add(emprestimo);
-            }
+            if (pageSize <= 0)
+                pageSize = defaultPageSize;
+
+            var atrasados = _emprestimos
+                .Where(e =>
+                {
+                    e.AtualizarStatus(dataReferencia);
+                    return e.Status == StatusEmprestimo.Atrasado;
+                })
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
             return atrasados;
         }
@@ -153,11 +165,11 @@ namespace Biblioteca.Services
             if (livro is null)
                 throw new InvalidOperationException("Livro não encontrado.");
 
-            bool existeEmprestimoEmAberto =
-                _emprestimos.Any(e => e.Livro.Id == idLivro && e.DataDevolucao is null);
+            bool existeHistoricoEmprestimo =
+                _emprestimos.Any(e => e.Livro.Id == idLivro);
 
-            if (existeEmprestimoEmAberto)
-                throw new InvalidOperationException("Não é possível remover o livro pois existe empréstimo em aberto.");
+            if (existeHistoricoEmprestimo)
+                throw new InvalidOperationException("Não é possível remover o livro pois ele possui empréstimos registrados.");
 
             _livros.Remove(livro);
         }
@@ -171,11 +183,11 @@ namespace Biblioteca.Services
             if (usuario is null)
                 throw new InvalidOperationException("Usuário não encontrado.");
 
-            bool existeEmprestimoEmAberto =
-                _emprestimos.Any(e => e.Usuario.Id == idUsuario && e.DataDevolucao is null);
+            bool existeHistoricoEmprestimo =
+                _emprestimos.Any(e => e.Usuario.Id == idUsuario);
 
-            if (existeEmprestimoEmAberto)
-                throw new InvalidOperationException("Não é possível remover o usuário pois existe empréstimo em aberto.");
+            if (existeHistoricoEmprestimo)
+                throw new InvalidOperationException("Não é possível remover o usuário pois ele possui empréstimos registrados.");
 
             _usuarios.Remove(usuario);
         }
@@ -192,6 +204,22 @@ namespace Biblioteca.Services
 
             return emprestimosAtivos;
         }
+
+        public List<Emprestimo> ListarTodos()
+        {
+            return _emprestimos;
+        }
+
+        public Emprestimo Realizar(int livroId, int usuarioId, DateTime dataPrevistaDevolucao)
+        {
+            return RealizarEmprestimo(livroId, usuarioId, dataPrevistaDevolucao);
+        }
+
+        public void Devolver(int emprestimoId)
+        {
+            DevolverEmprestimo(emprestimoId);
+        }
+
     }
 
 
