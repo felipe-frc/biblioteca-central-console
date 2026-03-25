@@ -1,6 +1,18 @@
 # 📚 Biblioteca Áurea
 
-Sistema de gerenciamento de biblioteca desenvolvido em **C# com ASP.NET Core MVC**, com controle de **livros, usuários e empréstimos**.
+Sistema de gerenciamento de biblioteca desenvolvido em **C# com ASP.NET Core MVC**, com foco em **boas práticas de arquitetura, organização de código e regras de negócio bem definidas**.
+
+---
+
+## 🎯 Objetivo do projeto
+
+Este projeto foi desenvolvido com o objetivo de praticar:
+
+- Arquitetura em camadas
+- Separação de responsabilidades
+- Modelagem de domínio
+- Boas práticas com ASP.NET Core e Entity Framework
+- Escrita de código limpo e testável
 
 ---
 
@@ -9,9 +21,10 @@ Sistema de gerenciamento de biblioteca desenvolvido em **C# com ASP.NET Core MVC
 - Cadastro, edição e exclusão de livros
 - Cadastro, edição e exclusão de usuários
 - Registro de empréstimos e devoluções
-- Validações de regras de negócio
+- Controle de disponibilidade de livros
 - Paginação nas listagens
-- Testes automatizados das entidades principais
+- Validações de regras de negócio
+- Testes automatizados
 
 ---
 
@@ -25,11 +38,27 @@ Sistema de gerenciamento de biblioteca desenvolvido em **C# com ASP.NET Core MVC
 
 ---
 
-## 📁 Estrutura do projeto
+## 🏗️ Arquitetura do projeto
 
-- **Biblioteca** → regras de negócio, entidades, enums e serviços
-- **Biblioteca.Web** → interface web MVC
-- **Biblioteca.Tests** → testes automatizados
+O sistema foi estruturado utilizando separação em camadas:
+
+```text
+Controller → Service (Application Layer) → DbContext → Banco de Dados
+```
+
+### Camadas:
+
+- **Biblioteca (Core)**
+  Contém regras de negócio, entidades e serviços do domínio
+
+- **Biblioteca.Web**
+  Responsável pela interface MVC e interação com o usuário
+
+- **Services (Application Layer)**
+  Centraliza a lógica de aplicação, evitando acoplamento com controllers
+
+- **Biblioteca.Tests**
+  Testes automatizados das entidades e regras principais
 
 ---
 
@@ -39,8 +68,19 @@ Sistema de gerenciamento de biblioteca desenvolvido em **C# com ASP.NET Core MVC
 - Não é possível emprestar livro indisponível
 - Não é possível excluir usuário com histórico de empréstimos
 - Não é possível excluir livro com histórico de empréstimos
-- A data prevista de devolução não pode ser no passado
-- A data prevista de devolução não pode ultrapassar **365 dias**
+- A data prevista de devolução:
+  - Não pode ser no passado
+  - Não pode ultrapassar **365 dias**
+
+---
+
+## 🔍 Diferenciais técnicos
+
+- Uso de **injeção de dependência**
+- Aplicação de **separação de responsabilidades (SoC)**
+- Implementação de **camada de serviço (Application Layer)**
+- Código organizado seguindo boas práticas de **Clean Code**
+- Estrutura preparada para evolução (API, testes, etc.)
 
 ---
 
@@ -48,31 +88,47 @@ Sistema de gerenciamento de biblioteca desenvolvido em **C# com ASP.NET Core MVC
 
 ### 1. Restaurar dependências
 
-```bash id="restore"
+```bash
 dotnet restore
 ```
 
 ### 2. Compilar o projeto
 
-```bash id="build"
+```bash
 dotnet build
 ```
 
 ### 3. Executar a aplicação web
 
-```bash id="run"
+```bash
 dotnet run --project Biblioteca.Web/Biblioteca.Web.csproj
 ```
 
 ### 4. Executar os testes
 
-```bash id="test"
+```bash
 dotnet test
 ```
 
----
+## 📸 Interface do sistema
+
+### 🏠 Página inicial
+
+![Home](docs/images/home.png)
+
+### 📚 Listagem de livros
+
+![Livros](docs/images/livros.png)
+
+### ➕ Cadastro de livro
+
+![Cadastro](docs/images/cadastro.png)
+
+### 🔄 Empréstimos
+
+![Emprestimos](docs/images/emprestimos.png)
 
 ## 👨‍💻 Autor
 
-Felipe França
-Estudante de Engenharia de Computação
+**Felipe França**
+Estudante de Ciência da Computação

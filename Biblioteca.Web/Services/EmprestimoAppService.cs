@@ -24,8 +24,12 @@ namespace Biblioteca.Web.Services
             if (usuario is null)
                 throw new InvalidOperationException("Usuário não encontrado.");
 
+            int novoId = _context.Emprestimos.Any()
+                ? _context.Emprestimos.Max(e => e.Id) + 1
+                : 1;
+
             var emprestimo = new Emprestimo(
-                0,
+                novoId,
                 livro,
                 usuario,
                 dataPrevistaDevolucao
