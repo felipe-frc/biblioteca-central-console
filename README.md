@@ -28,6 +28,14 @@ Este projeto foi desenvolvido com o objetivo de praticar:
 
 ---
 
+## ✅ Qualidade e testes
+
+- Testes unitários de regras de negócio com xUnit
+- Testes de integração para fluxo de empréstimo (AppService + DbContext)
+- Pipeline CI com GitHub Actions executando build e testes a cada push/PR
+
+---
+
 ## 🛠️ Tecnologias utilizadas
 
 - .NET 8
@@ -61,6 +69,19 @@ Controller → Service (Application Layer) → DbContext → Banco de Dados
   Testes automatizados das entidades e regras principais
 
 ---
+
+### Decisões de arquitetura
+
+- **Domínio rico**: regras de negócio ficam nas entidades (`Livro`, `Usuario`, `Emprestimo`), evitando lógica espalhada em controllers.
+- **Application Service**: `EmprestimoAppService` orquestra casos de uso da aplicação web.
+- **Persistência com EF Core + SQLite**: simplicidade local com estrutura pronta para evoluir para SQL Server/PostgreSQL.
+- **Separação de projetos**:
+  - `Biblioteca` → domínio
+  - `Biblioteca.Web` → interface MVC + dados
+  - `Biblioteca.Tests` → testes automatizados
+  - `Biblioteca.Console` → simulação em terminal
+
+  ***
 
 ## 🧠 Regras de negócio
 
@@ -128,7 +149,20 @@ dotnet test
 
 ![Emprestimos](docs/images/emprestimos.png)
 
+---
+
+## 📚 Aprendizados
+
+Este projeto me permitiu praticar:
+
+- modelagem de domínio e encapsulamento de regras
+- tratamento de exceções e validações de entrada
+- uso de Entity Framework Core com migrations
+- escrita de testes e automação com CI
+- organização de solução em camadas
+
+---
+
 ## 👨‍💻 Autor
 
 **Felipe França**
-Estudante de Ciência da Computação
